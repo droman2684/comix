@@ -23,7 +23,8 @@ export const IPC_CHANNELS = {
   STATE_TOGGLE_FAVORITE: 'state:toggleFavorite',
   STATE_SAVE_LIBRARY_VIEW_MODE: 'state:saveLibraryViewMode',
   STATE_SAVE_SERIES_VIEW_MODE: 'state:saveSeriesViewMode',
-  STATE_MARK_SERIES_IMPORTED: 'state:markSeriesImported'
+  STATE_MARK_SERIES_IMPORTED: 'state:markSeriesImported',
+  STATE_CLEAR_LIBRARY: 'state:clearLibrary'
 } as const
 
 export interface ScanResult {
@@ -59,5 +60,6 @@ export interface ComicsApi {
     saveLibraryViewMode(mode: LibraryViewMode): Promise<void>
     saveSeriesViewMode(mode: IssueViewMode): Promise<void>
     markSeriesImported(seriesName: string): Promise<void>
+    clearLibrary(): Promise<void>
   }
 }

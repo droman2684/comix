@@ -169,3 +169,16 @@
   font-size: 15px;
   line-height: 1;
 }
+
+.clearLibraryBtn {
+  margin-top: 4px;
+  padding: 5px 10px;
+  font-size: 11px;
+  color: #6a5a54;
+  cursor: pointer;
+  text-align: center;
+}
+
+.clearLibraryBtn:hover {
+  color: #c86450;
+}

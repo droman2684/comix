@@ -45,6 +45,7 @@ function Sidebar(): React.JSX.Element {
   const goToSeries = useAppStore((s) => s.goToSeries)
   const toggleFavorite = useAppStore((s) => s.toggleFavorite)
   const pickFolder = useAppStore((s) => s.pickFolder)
+  const clearLibrary = useAppStore((s) => s.clearLibrary)
 
   const totalUnread = library.reduce(
     (sum, ser) => sum + ser.issues.filter((i) => !readStatus[i.key]?.read).length,
@@ -54,6 +55,14 @@ function Sidebar(): React.JSX.Element {
 
   const inboxActive = view === 'inbox' || view === 'reader'
   const libraryActive = view === 'library' || view === 'series'
+
+  const handleClearLibrary = (): void => {
+    const ok = window.confirm(
+      'Clear your library? This removes the current folder, read progress, favorites, and imported cover art from Comics. Your comic files on disk are not affected.'
+    )
+    if (!ok) return
+    clearLibrary()
+  }
 
   return (
     <div className={styles.sidebar}>
@@ -139,6 +148,11 @@ function Sidebar(): React.JSX.Element {
           <span className={styles.folderEmoji}>📂</span>
           <span>{rootPath ? 'Change Folder' : 'Open Folder'}</span>
         </div>
+        {rootPath && (
+          <div className={styles.clearLibraryBtn} onClick={handleClearLibrary}>
+            Clear Library
+          </div>
+        )}
       </div>
     </div>
   )

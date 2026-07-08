@@ -13,6 +13,7 @@ export interface LibrarySlice {
   pickFolder: () => Promise<void>
   reopenLibrary: (rootPath: string) => Promise<boolean>
   loadDemoLibrary: () => void
+  clearLibrary: () => Promise<void>
 }
 
 export const createLibrarySlice: StateCreator<AppState, [], [], LibrarySlice> = (set, get) => ({
@@ -84,5 +85,26 @@ export const createLibrarySlice: StateCreator<AppState, [], [], LibrarySlice> = 
       lastRead,
       covers: { ...state.covers, ...covers }
     }))
+  },
+
+  // Wipes the current library entirely — root path, read progress,
+  // favorites, imported-cover flags, and the on-disk cover cache — so a
+  // subsequent import of a different folder starts clean instead of
+  // inheriting stale state under any coincidentally-reused issue keys.
+  clearLibrary: async () => {
+    await window.api.state.clearLibrary()
+    set({
+      library: [],
+      rootPath: null,
+      view: 'welcome',
+      viewingSeriesName: null,
+      readStatus: {},
+      lastRead: null,
+      favorites: {},
+      importedSeriesNames: {},
+      covers: {},
+      importingSeries: {},
+      scanError: null
+    })
   }
 })

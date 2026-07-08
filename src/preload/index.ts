@@ -27,7 +27,8 @@ const api: ComicsApi = {
     saveSeriesViewMode: (mode) =>
       ipcRenderer.invoke(IPC_CHANNELS.STATE_SAVE_SERIES_VIEW_MODE, mode),
     markSeriesImported: (seriesName) =>
-      ipcRenderer.invoke(IPC_CHANNELS.STATE_MARK_SERIES_IMPORTED, seriesName)
+      ipcRenderer.invoke(IPC_CHANNELS.STATE_MARK_SERIES_IMPORTED, seriesName),
+    clearLibrary: () => ipcRenderer.invoke(IPC_CHANNELS.STATE_CLEAR_LIBRARY)
   }
 }
 

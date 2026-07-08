@@ -1,5 +1,5 @@
 import { app } from 'electron'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createHash } from 'node:crypto'
 
@@ -34,5 +34,16 @@ export function writeCachedCover(issueKey: string, dataUrl: string): void {
     writeFileSync(cacheFilePath(issueKey), dataUrl, 'utf-8')
   } catch (err) {
     console.error('Failed to write cached cover:', err)
+  }
+}
+
+// Wipes every cached cover — used when the user clears their library so a
+// re-import of a differently-organized folder can't serve a stale cover
+// under a coincidentally-reused issue key.
+export function clearCoverCache(): void {
+  try {
+    rmSync(coversDir(), { recursive: true, force: true })
+  } catch (err) {
+    console.error('Failed to clear cover cache:', err)
   }
 }

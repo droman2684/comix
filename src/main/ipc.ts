@@ -4,9 +4,9 @@ import { existsSync } from 'node:fs'
 import { IPC_CHANNELS } from '@shared/ipcChannels'
 import type { ScanResult } from '@shared/ipcChannels'
 import type { ReadStatusEntry, LastRead, LibraryViewMode, IssueViewMode } from '@shared/types'
-import { getSnapshot, persist } from './persistence'
+import { getSnapshot, persist, persistNow } from './persistence'
 import { scanLibrary, readComicPages, readComicCover } from './library'
-import { readCachedCover, writeCachedCover } from './coverCache'
+import { readCachedCover, writeCachedCover, clearCoverCache } from './coverCache'
 
 function scanResult(rootPath: string): ScanResult {
   return { rootPath, series: scanLibrary(rootPath) }
@@ -114,5 +114,21 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(IPC_CHANNELS.STATE_MARK_SERIES_IMPORTED, (_event, seriesName: string) => {
     getSnapshot().importedSeries[seriesName] = true
     persist()
+  })
+
+  // Resets everything tied to the current library — root path, read
+  // progress, favorites, and imported-cover flags — plus the on-disk cover
+  // cache, so importing a different folder afterward starts clean instead
+  // of inheriting stale state under any coincidentally-reused issue keys.
+  // View preferences (grid/list, window bounds) are left alone.
+  ipcMain.handle(IPC_CHANNELS.STATE_CLEAR_LIBRARY, () => {
+    const snapshot = getSnapshot()
+    snapshot.rootPath = null
+    snapshot.readStatus = {}
+    snapshot.lastRead = null
+    snapshot.favorites = {}
+    snapshot.importedSeries = {}
+    persistNow()
+    clearCoverCache()
   })
 }
