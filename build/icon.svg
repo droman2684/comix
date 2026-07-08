@@ -1,0 +1,48 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" rx="180" fill="#002D72"/>
+
+  <!-- open book -->
+  <g transform="translate(512 500)">
+    <!-- left page -->
+    <path d="M -280 -140
+             C -280 -162 -262 -178 -240 -174
+             L -30 -132
+             C -14 -129 -2 -114 -2 -97
+             L -2 208
+             C -2 226 -18 238 -36 233
+             L -252 176
+             C -268 172 -280 157 -280 140
+             Z"
+          fill="#FFFFFF"/>
+    <!-- right page -->
+    <path d="M 280 -140
+             C 280 -162 262 -178 240 -174
+             L 30 -132
+             C 14 -129 2 -114 2 -97
+             L 2 208
+             C 2 226 18 238 36 233
+             L 252 176
+             C 268 172 280 157 280 140
+             Z"
+          fill="#FFFFFF"/>
+    <!-- spine shadow -->
+    <path d="M -2 -97 C -2 -114 -14 -129 -30 -132 L 0 -138 L 30 -132 C 14 -129 2 -114 2 -97 Z" fill="#DCE4F2"/>
+
+    <!-- text lines left page -->
+    <rect x="-240" y="-70" width="180" height="16" rx="8" fill="#B8C8E8"/>
+    <rect x="-240" y="-24" width="210" height="16" rx="8" fill="#B8C8E8"/>
+    <rect x="-240" y="22" width="150" height="16" rx="8" fill="#B8C8E8"/>
+    <rect x="-240" y="68" width="195" height="16" rx="8" fill="#B8C8E8"/>
+    <rect x="-240" y="114" width="130" height="16" rx="8" fill="#B8C8E8"/>
+
+    <!-- text lines right page -->
+    <rect x="60" y="-70" width="180" height="16" rx="8" fill="#B8C8E8"/>
+    <rect x="60" y="-24" width="150" height="16" rx="8" fill="#B8C8E8"/>
+    <rect x="60" y="22" width="210" height="16" rx="8" fill="#B8C8E8"/>
+    <rect x="60" y="68" width="130" height="16" rx="8" fill="#B8C8E8"/>
+    <rect x="60" y="114" width="195" height="16" rx="8" fill="#B8C8E8"/>
+  </g>
+
+  <!-- accent bar, matches Empire Pod / Empire RSS / Empire YT family -->
+  <rect x="337" y="800" width="350" height="26" rx="13" fill="#FF5910"/>
+</svg>

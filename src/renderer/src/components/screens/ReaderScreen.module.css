@@ -1,0 +1,142 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--reader-bg);
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+}
+
+.topBar {
+  height: 44px;
+  background: var(--reader-bar);
+  border-bottom: 1px solid var(--reader-border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.backBtn {
+  background: transparent;
+  color: var(--sidebar-text);
+  border: 1px solid var(--reader-border);
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.titleArea {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.seriesName {
+  color: #5a5880;
+  font-weight: 500;
+}
+
+.issueName {
+  color: #706d68;
+}
+
+.pageCounter {
+  font-size: 12px;
+  color: #4e4b47;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.markReadBtn {
+  background: transparent;
+  color: var(--accent-green);
+  border: 1px solid #1a3a28;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.pageModeBtn {
+  border: 1px solid var(--reader-border);
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.fullscreenBtn {
+  background: transparent;
+  color: #4e4b47;
+  border: 1px solid var(--reader-border);
+  padding: 4px 8px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.pageArea {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.leftZone {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 32%;
+  z-index: 10;
+}
+
+.rightZone {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 32%;
+  z-index: 10;
+}
+
+.pages {
+  display: flex;
+  gap: 4px;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  pointer-events: none;
+}
+
+.pageImg {
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.8);
+}
+
+.progressTrack {
+  height: 3px;
+  background: var(--reader-border);
+  flex-shrink: 0;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--accent-orange);
+  transition: width 0.15s;
+}

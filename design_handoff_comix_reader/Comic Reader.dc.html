@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #F4F3F0; }
+    a { color: inherit; text-decoration: none; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.13); border-radius: 99px; }
+    .sb::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.11); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</helmet>
+
+<div style="display:flex; height:100vh; font-family:'Inter',system-ui,sans-serif; background:#F4F3F0; overflow:hidden;">
+
+  <!-- SIDEBAR -->
+  <div style="width:222px; background:#17161A; display:flex; flex-direction:column; flex-shrink:0; user-select:none;">
+
+    <!-- Logo -->
+    <div style="padding:20px 14px 14px; display:flex; align-items:center; gap:9px;">
+      <div style="width:27px; height:27px; background:#E06B3A; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+        <svg viewBox="0 0 20 20" width="14" height="14" fill="none">
+          <rect x="3" y="2" width="10" height="14" rx="1.5" fill="white" opacity="0.95"></rect>
+          <rect x="4.5" y="5" width="7" height="1.2" rx="0.6" fill="#E06B3A"></rect>
+          <rect x="4.5" y="7.5" width="5" height="1.2" rx="0.6" fill="#E06B3A"></rect>
+          <rect x="13.5" y="3.5" width="3" height="11" rx="1" fill="white" opacity="0.35"></rect>
+        </svg>
+      </div>
+      <span style="color:#F0EDE8; font-size:15px; font-weight:600; letter-spacing:-0.4px;">Comix</span>
+    </div>
+
+    <!-- Primary nav -->
+    <div style="padding:0 8px; display:flex; flex-direction:column; gap:1px;">
+      <div style="{{ inboxNavStyle }}" onClick="{{ setInboxView }}">
+        <svg viewBox="0 0 20 20" width="14" height="14" fill="none"><path d="M2 5h16M2 10h16M2 15h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+        <span style="flex:1;">Inbox</span>
+        <sc-if value="{{ showUnreadBadge }}" hint-placeholder-val="{{ true }}">
+          <span style="background:#E06B3A; color:#fff; font-size:10px; font-weight:600; padding:1px 7px; border-radius:99px; min-width:20px; text-align:center;">{{ totalUnread }}</span>
+        </sc-if>
+      </div>
+      <div style="{{ libraryNavStyle }}" onClick="{{ setLibraryView }}">
+        <svg viewBox="0 0 20 20" width="14" height="14" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect></svg>
+        <span>Library</span>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div style="height:1px; background:rgba(255,255,255,0.07); margin:12px 14px 8px;"></div>
+
+    <!-- Series list -->
+    <div class="sb" style="flex:1; overflow-y:auto; padding:0 8px 8px;">
+      <sc-if value="{{ showNoLibraryHint }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:8px 10px; font-size:12px; color:#4E4B47; line-height:1.6;">Open a comics folder<br>to see your series here</div>
+      </sc-if>
+      <sc-for list="{{ sidebarSeries }}" as="ser" hint-placeholder-count="8">
+        <div style="{{ ser.itemStyle }}" onClick="{{ ser.onSelect }}">
+          <div style="{{ ser.dotStyle }}"></div>
+          <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px;">{{ ser.name }}</span>
+          <sc-if value="{{ ser.showBadge }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size:10px; color:#706D68; font-weight:600;">{{ ser.unread }}</span>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- Open Folder -->
+    <div style="padding:10px 8px 16px;">
+      <div style="padding:7px 10px; border-radius:6px; background:rgba(255,255,255,0.05); color:#908D88; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:7px;" onClick="{{ openFolder }}">
+        <span style="font-size:15px; line-height:1;">📂</span>
+        <span>{{ folderBtnLabel }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div style="flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0;">
+
+    <!-- WELCOME -->
+    <sc-if value="{{ showWelcome }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:1; display:flex; align-items:center; justify-content:center; padding:40px; overflow-y:auto;">
+        <div style="width:100%; max-width:380px; background:#FFF; border-radius:10px; border:1px solid #E0DDD8; padding:32px; display:flex; flex-direction:column; align-items:center; gap:18px; text-align:center;">
+          <div style="width:52px; height:52px; background:#E06B3A; border-radius:13px; display:flex; align-items:center; justify-content:center;">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="white"><path d="M4 4c0-1.1.9-2 2-2h8l6 6v12c0 1.1-.9 2-2 2H6a2 2 0 01-2-2V4z" opacity="0.95"></path><path d="M14 2l6 6h-6V2z" opacity="0.55"></path><rect x="7" y="12" width="10" height="1.4" rx="0.7" fill="#E06B3A"></rect><rect x="7" y="15" width="7" height="1.4" rx="0.7" fill="#E06B3A"></rect></svg>
+          </div>
+          <div>
+            <h2 style="font-size:18px; font-weight:600; color:#1A1917; margin-bottom:6px; letter-spacing:-0.3px;">{{ welcomeHeading }}</h2>
+            <p style="font-size:13px; color:#8A8680; line-height:1.6;">{{ welcomeSubtext }}</p>
+          </div>
+          <button onClick="{{ openFolder }}" style="width:100%; padding:10px; background:#1A1917; color:#FFF; border:none; border-radius:7px; font-size:14px; font-weight:500; cursor:pointer; font-family:inherit;">{{ welcomeBtnLabel }}</button>
+          <button onClick="{{ loadDemo }}" style="width:100%; padding:10px; background:transparent; color:#5A5850; border:1px solid #E0DDD8; border-radius:7px; font-size:13px; font-weight:500; cursor:pointer; font-family:inherit;">Try Demo →</button>
+          <div style="display:flex; flex-direction:column; gap:6px; align-self:stretch; text-align:left;">
+            <div style="font-size:12px; color:#8A8680; display:flex; align-items:center; gap:6px;"><span style="color:#48B87A;">✓</span> CBZ (ZIP-based) files fully supported</div>
+            <div style="font-size:12px; color:#8A8680; display:flex; align-items:center; gap:6px;"><span style="color:#48B87A;">✓</span> Tracks read status and progress locally</div>
+            <div style="font-size:12px; color:#8A8680; display:flex; align-items:center; gap:6px;"><span style="color:#48B87A;">✓</span> Requires Chrome, Edge, or Brave</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- INBOX -->
+    <sc-if value="{{ showInbox }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex; flex-direction:column; height:100%;">
+        <div style="padding:13px 20px 11px; display:flex; align-items:center; gap:10px; background:#F4F3F0; border-bottom:1px solid #E0DDD8; flex-shrink:0;">
+          <sc-if value="{{ hasSeriesFilter }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size:13px; color:#9A9790; cursor:pointer;" onClick="{{ clearSeriesFilter }}">← All</span>
+          </sc-if>
+          <h1 style="font-size:16px; font-weight:600; color:#1A1917; letter-spacing:-0.3px;">{{ inboxHeader }}</h1>
+          <div style="margin-left:auto; display:flex; align-items:center; gap:1px; background:#E0DDD8; border-radius:6px; padding:2px;">
+            <div style="{{ filterUnreadStyle }}" onClick="{{ setFilterUnread }}">Unread</div>
+            <div style="{{ filterAllStyle }}" onClick="{{ setFilterAll }}">All</div>
+          </div>
+        </div>
+        <div style="flex:1; overflow-y:auto;">
+          <sc-if value="{{ emptyInbox }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:300px; gap:8px;">
+              <div style="font-size:30px; color:#C8C5C0;">✓</div>
+              <div style="font-size:14px; font-weight:500; color:#5A5850;">All caught up</div>
+              <div style="font-size:13px; color:#A09D98;">No unread issues in your library</div>
+              <div style="margin-top:4px; font-size:13px; color:#9A9790; cursor:pointer;" onClick="{{ setFilterAll }}">Show all issues →</div>
+            </div>
+          </sc-if>
+          <sc-for list="{{ inboxCards }}" as="card" hint-placeholder-count="8">
+            <div style="{{ card.rowStyle }}">
+              <div style="{{ card.dotStyle }}"></div>
+              <div style="{{ card.coverStyle }}" onClick="{{ card.onOpen }}">
+                <div style="{{ card.issueNumStyle }}">{{ card.issueNumText }}</div>
+              </div>
+              <div style="flex:1; min-width:0;">
+                <div style="{{ card.titleStyle }}" onClick="{{ card.onOpen }}">{{ card.issueName }}</div>
+                <div style="font-size:12px; color:#8A8680; display:flex; align-items:center; gap:4px; margin-top:3px; flex-wrap:wrap;">
+                  <span style="{{ card.seriesNameStyle }}">{{ card.seriesName }}</span>
+                  <sc-if value="{{ card.showProgressMeta }}" hint-placeholder-val="{{ false }}">
+                    <span style="color:#D0CDC8;">·</span>
+                    <span>{{ card.progressText }}</span>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ card.showProgressBar }}" hint-placeholder-val="{{ false }}">
+                  <div style="height:3px; background:#E0DDD8; border-radius:2px; overflow:hidden; margin-top:8px; width:120px;">
+                    <div style="{{ card.progressFillStyle }}"></div>
+                  </div>
+                </sc-if>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:5px; flex-shrink:0; align-items:flex-end;">
+                <button style="{{ card.openBtnStyle }}" onClick="{{ card.onOpen }}">Open</button>
+                <button style="{{ card.readBtnStyle }}" onClick="{{ card.onToggleRead }}">{{ card.readLabel }}</button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- LIBRARY -->
+    <sc-if value="{{ showLibrary }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex; flex-direction:column; height:100%;">
+        <div style="padding:13px 20px 11px; background:#F4F3F0; border-bottom:1px solid #E0DDD8; flex-shrink:0; display:flex; align-items:center; gap:8px;">
+          <h1 style="font-size:16px; font-weight:600; color:#1A1917; letter-spacing:-0.3px;">Library</h1>
+          <span style="font-size:13px; color:#9A9790;">{{ librarySubtitle }}</span>
+        </div>
+        <div style="flex:1; overflow-y:auto; padding:16px 20px 20px;">
+          <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(168px,1fr)); gap:14px;">
+            <sc-for list="{{ libraryCards }}" as="lc" hint-placeholder-count="8">
+              <div style="{{ lc.cardStyle }}" onClick="{{ lc.onClick }}">
+                <div style="{{ lc.coverStyle }}">
+                  <div style="{{ lc.titleOverlayStyle }}">{{ lc.name }}</div>
+                  <div style="{{ lc.issueBadgeStyle }}">{{ lc.issueCount }}</div>
+                </div>
+                <div style="padding:10px 12px 12px;">
+                  <div style="font-size:14px; font-weight:600; color:#1A1917; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ lc.name }}</div>
+                  <div style="font-size:12px; color:#8A8680; margin-bottom:8px;">{{ lc.readLabel }}</div>
+                  <div style="height:3px; background:#E0DDD8; border-radius:2px; overflow:hidden;">
+                    <div style="{{ lc.progressFillStyle }}"></div>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- SERIES -->
+    <sc-if value="{{ showSeries }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex; flex-direction:column; height:100%;">
+        <div style="padding:13px 20px 11px; background:#F4F3F0; border-bottom:1px solid #E0DDD8; flex-shrink:0; display:flex; align-items:center; gap:12px;">
+          <span style="font-size:13px; color:#9A9790; cursor:pointer;" onClick="{{ setLibraryView }}">← Library</span>
+          <h1 style="font-size:16px; font-weight:600; color:#1A1917; letter-spacing:-0.3px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ currentSeriesName }}</h1>
+          <span style="font-size:12px; color:#9A9790; white-space:nowrap;">{{ seriesReadLabel }}</span>
+          <button style="font-size:12px; padding:5px 12px; border:1px solid #E0DDD8; border-radius:6px; background:#FFF; color:#3A3830; cursor:pointer; font-family:inherit; flex-shrink:0;" onClick="{{ markAllSeriesRead }}">Mark all read</button>
+        </div>
+        <div style="flex:1; overflow-y:auto;">
+          <sc-for list="{{ seriesIssueCards }}" as="card" hint-placeholder-count="8">
+            <div style="{{ card.rowStyle }}">
+              <div style="{{ card.dotStyle }}"></div>
+              <div style="{{ card.coverStyle }}" onClick="{{ card.onOpen }}">
+                <div style="{{ card.issueNumStyle }}">{{ card.issueNumText }}</div>
+              </div>
+              <div style="flex:1; min-width:0;">
+                <div style="{{ card.titleStyle }}" onClick="{{ card.onOpen }}">{{ card.issueName }}</div>
+                <sc-if value="{{ card.showProgressMeta }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:12px; color:#8A8680; margin-top:3px;">{{ card.progressText }}</div>
+                </sc-if>
+                <sc-if value="{{ card.showProgressBar }}" hint-placeholder-val="{{ false }}">
+                  <div style="height:3px; background:#E0DDD8; border-radius:2px; overflow:hidden; margin-top:8px; width:120px;">
+                    <div style="{{ card.progressFillStyle }}"></div>
+                  </div>
+                </sc-if>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:5px; flex-shrink:0; align-items:flex-end;">
+                <button style="{{ card.openBtnStyle }}" onClick="{{ card.onOpen }}">Open</button>
+                <button style="{{ card.readBtnStyle }}" onClick="{{ card.onToggleRead }}">{{ card.readLabel }}</button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+
+{{ readerOverlay }}
+{{ loadingOverlay }}
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1280, &quot;height&quot;: 800}}">
+class Component extends DCLogic {
+  COLORS = ['#4A9BE8','#E8943A','#48B87A','#5A8FD4','#8B5CF6','#E05C5C','#06B6D4','#D97706','#84CC16','#F43F5E','#A855F7','#14B8A6'];
+
+  state = {
+    view: 'welcome',
+    library: [],
+    currentSeries: null,
+    currentIssue: null,
+    pages: [],
+    currentPage: 0,
+    doublePageMode: false,
+    loading: false,
+    loadingMessage: '',
+    readStatus: {},
+    lastRead: null,
+    rootName: '',
+    prevView: 'inbox',
+    selectedSeries: null,
+    inboxFilter: 'unread',
+  };
+
+  componentDidMount() {
+    this.E = React.createElement;
+    this.coverCache = {};
+    try {
+      const rs = localStorage.getItem('comicReader.status');
+      const lr = localStorage.getItem('comicReader.lastRead');
+      const rn = localStorage.getItem('comicReader.rootName');
+      this.setState({
+        readStatus: rs ? JSON.parse(rs) : {},
+        lastRead: lr ? JSON.parse(lr) : null,
+        rootName: rn || '',
+      });
+    } catch(e) {}
+
+    this._onKey = e => {
+      if (this.state.view !== 'reader') return;
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); this.nextPage(); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); this.prevPage(); }
+      if (e.key === 'Escape') this.closeReader();
+      if (e.key === 'd') this.setState(s => ({ doublePageMode: !s.doublePageMode }));
+      if (e.key === 'f') this.toggleFullscreen();
+    };
+    document.addEventListener('keydown', this._onKey);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this._onKey);
+    this.state.pages.forEach(u => URL.revokeObjectURL(u));
+  }
+
+  saveStatus(readStatus, lastRead) {
+    try {
+      localStorage.setItem('comicReader.status', JSON.stringify(readStatus));
+      if (lastRead) localStorage.setItem('comicReader.lastRead', JSON.stringify(lastRead));
+    } catch(e) {}
+  }
+
+  seriesColor(name) {
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = ((h << 5) - h + name.charCodeAt(i)) | 0;
+    return this.COLORS[((h % this.COLORS.length) + this.COLORS.length) % this.COLORS.length];
+  }
+
+  issueNum(name) {
+    const m = name.match(/\d+/);
+    return m ? parseInt(m[0]) : null;
+  }
+
+  async openFolder() {
+    if (!('showDirectoryPicker' in window)) {
+      alert('File System Access API not supported.\nPlease use Chrome, Edge, or Brave.');
+      return;
+    }
+    try {
+      const handle = await window.showDirectoryPicker({ mode: 'read' });
+      this.setState({ loading: true, loadingMessage: 'Scanning library…' });
+      const library = await this.scanLibrary(handle);
+      if (!library.length) {
+        this.setState({ loading: false });
+        alert('No series found.\n\nMake sure your folder contains subfolders with .cbz files.\n\nExpected structure:\n  Comics/\n    Series Name/\n      Issue 001.cbz');
+        return;
+      }
+      localStorage.setItem('comicReader.rootName', handle.name);
+      this.setState({ library, view: 'inbox', loading: false, rootName: handle.name, selectedSeries: null });
+    } catch(e) {
+      if (e.name !== 'AbortError') alert('Error opening folder: ' + e.message);
+      this.setState({ loading: false });
+    }
+  }
+
+  async scanLibrary(handle) {
+    const lib = [];
+    for await (const [name, entry] of handle.entries()) {
+      if (entry.kind !== 'directory') continue;
+      const color = this.seriesColor(name);
+      const series = { name, handle: entry, issues: [], color };
+      for await (const [fname, fentry] of entry.entries()) {
+        if (fentry.kind === 'file' && /\.(cbz|cbr)$/i.test(fname)) {
+          series.issues.push({
+            name: fname,
+            displayName: fname.replace(/\.(cbz|cbr)$/i, ''),
+            handle: fentry,
+            key: `${name}:::${fname}`,
+            isCBR: /\.cbr$/i.test(fname)
+          });
+        }
+      }
+      series.issues.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+      if (series.issues.length) lib.push(series);
+    }
+    return lib.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  hexRgb(hex) {
+    return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
+  }
+
+  generateDemoCover(seriesName, issueNum, color) {
+    const W = 400, H = 580;
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    const [r,g,b] = this.hexRgb(color);
+    const grad = ctx.createLinearGradient(0, 0, W*0.6, H);
+    grad.addColorStop(0, color);
+    grad.addColorStop(1, `rgb(${Math.max(r-70,0)},${Math.max(g-70,0)},${Math.max(b-70,0)})`);
+    ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
+    const dark = ctx.createLinearGradient(0, H*0.45, 0, H);
+    dark.addColorStop(0,'rgba(0,0,0,0)'); dark.addColorStop(1,'rgba(0,0,0,0.72)');
+    ctx.fillStyle = dark; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='rgba(255,255,255,0.07)';
+    ctx.beginPath(); ctx.arc(W*0.78,H*0.28,130,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(W*0.1,H*0.55,80,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.18)'; ctx.lineWidth=3;
+    ctx.strokeRect(10,10,W-20,H-20);
+    ctx.fillStyle='rgba(255,255,255,0.22)'; ctx.fillRect(16,16,62,28);
+    ctx.fillStyle='#fff'; ctx.font='bold 14px sans-serif'; ctx.textAlign='left';
+    ctx.fillText(`#${issueNum}`,26,34);
+    ctx.textAlign='center'; ctx.shadowColor='rgba(0,0,0,0.6)'; ctx.shadowBlur=10;
+    const fs = seriesName.length > 14 ? 22 : seriesName.length > 10 ? 26 : 30;
+    ctx.font=`bold ${fs}px sans-serif`; ctx.fillStyle='#fff';
+    ctx.fillText(seriesName, W/2, H-54);
+    ctx.font='13px sans-serif'; ctx.fillStyle='rgba(255,255,255,0.65)';
+    ctx.fillText(`Issue ${issueNum}`, W/2, H-28);
+    ctx.shadowBlur=0;
+    return canvas.toDataURL('image/jpeg',0.88);
+  }
+
+  generateDemoPage(pageNum, seriesName, issueNum, color) {
+    const W = 800, H = 1120;
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    const [r,g,b] = this.hexRgb(color);
+    ctx.fillStyle='#f5f4ee'; ctx.fillRect(0,0,W,H);
+    const m=18, gp=8, bw=2.5;
+    const panel = (x,y,w,h,shade) => {
+      ctx.fillStyle=`rgba(${r},${g},${b},${shade})`; ctx.fillRect(x,y,w,h);
+      ctx.strokeStyle='#111'; ctx.lineWidth=bw; ctx.strokeRect(x,y,w,h);
+    };
+    const bubble = (x,y,w,h,text) => {
+      ctx.fillStyle='#fff'; ctx.strokeStyle='#333'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.ellipse(x,y,w,h,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle='#222'; ctx.font='11px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(text,x,y);
+    };
+    if (pageNum === 1) {
+      panel(m,m,W-m*2,H-m*2,0.13);
+      ctx.fillStyle=color; ctx.font=`bold 54px sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.shadowColor='rgba(0,0,0,0.3)'; ctx.shadowBlur=8;
+      ctx.fillText(seriesName,W/2,H/2-48); ctx.shadowBlur=0;
+      ctx.fillStyle='#333'; ctx.font='28px sans-serif'; ctx.fillText(`Issue #${issueNum}`,W/2,H/2+16);
+      ctx.fillStyle='#aaa'; ctx.font='14px sans-serif'; ctx.fillText('DEMO PREVIEW',W/2,H/2+64);
+    } else {
+      const layout=(pageNum-1)%4;
+      if (layout===0) {
+        panel(m,m,W-m*2,360,0.1); panel(m,m+360+gp,(W-m*2-gp)/2,H-m-(360+gp+m),0.14); panel(m+(W-m*2-gp)/2+gp,m+360+gp,(W-m*2-gp)/2,H-m-(360+gp+m),0.08);
+        bubble(180,200,75,32,'...');
+      } else if (layout===1) {
+        const cw=(W-m*2-gp*2)/3; panel(m,m,cw,H-m*2,0.1); panel(m+cw+gp,m,cw,(H-m*2-gp)/2,0.14); panel(m+cw+gp,m+(H-m*2-gp)/2+gp,cw,(H-m*2-gp)/2,0.08); panel(m+cw*2+gp*2,m,cw,H-m*2,0.12);
+        bubble(m+cw/2,H/2,60,28,'Hmm...');
+      } else if (layout===2) {
+        const rh=(H-m*2-gp*2)/3; panel(m,m,W-m*2,rh,0.08); panel(m,m+rh+gp,W-m*2,rh,0.14); panel(m,m+(rh+gp)*2,W-m*2,rh,0.1);
+        ctx.fillStyle=color; ctx.font='bold 28px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('WHAM!',W/2,m+rh*1.5+gp);
+      } else {
+        const bwP=(W-m*2-gp)*0.58; const bwS=W-m*2-gp-bwP; const inner=(H-m-(m+300+gp)-gp)/2;
+        panel(m,m,W-m*2,300,0.12); panel(m,m+300+gp,bwP,H-m-(m+300+gp),0.1); panel(m+bwP+gp,m+300+gp,bwS,inner,0.15); panel(m+bwP+gp,m+300+gp+inner+gp,bwS,inner,0.08);
+        bubble(300,H-inner/2-gp,'Good...','',55,25);
+      }
+    }
+    ctx.fillStyle='#bbb'; ctx.font='11px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+    ctx.fillText(String(pageNum),W/2,H-4);
+    return canvas.toDataURL('image/jpeg',0.84);
+  }
+
+  loadDemoData() {
+    const demoSeries = [
+      { name:'Neon City Blues', issues:6, readCount:1, inProgressIdx:1, inProgressPage:4 },
+      { name:'Starfall',        issues:10, readCount:4 },
+      { name:'Iron Covenant',   issues:12, readCount:0 },
+      { name:'The Pale Garden', issues:4,  readCount:2 },
+    ];
+    const library = [];
+    const readStatus = {};
+    let lastRead = null;
+    for (const def of demoSeries) {
+      const color = this.seriesColor(def.name);
+      const series = { name:def.name, color, issues:[], isDemo:true };
+      for (let i=1; i<=def.issues; i++) {
+        const fname=`${def.name} #${String(i).padStart(3,'0')}.cbz`;
+        const key=`DEMO:::${def.name}:::${fname}`;
+        const issue={ name:fname, displayName:`${def.name} #${i}`, key, isCBR:false, isDemo:true, demoColor:color, demoSeriesName:def.name, demoIssueNum:i };
+        this.coverCache[key] = this.generateDemoCover(def.name, i, color);
+        if (i<=def.readCount) readStatus[key]={ read:true, page:8, total:8 };
+        else if (def.inProgressIdx && i===def.inProgressIdx) {
+          readStatus[key]={ read:false, page:def.inProgressPage, total:8 };
+          lastRead={ issueKey:key, seriesName:def.name, issueName:issue.displayName, page:def.inProgressPage, total:8 };
+        }
+        series.issues.push(issue);
+      }
+      library.push(series);
+    }
+    this.setState({ library, readStatus, lastRead, view:'inbox', rootName:'Demo Library', selectedSeries:null });
+  }
+
+  openDemoIssue(series, issue) {
+    const pages=[];
+    for (let p=1; p<=8; p++) pages.push(this.generateDemoPage(p, issue.demoSeriesName, issue.demoIssueNum, issue.demoColor));
+    if (!this.coverCache[issue.key]) this.coverCache[issue.key]=pages[0];
+    const saved=this.state.readStatus[issue.key];
+    const startPage=(saved&&!saved.read&&saved.page)?saved.page:0;
+    const lastRead={ issueKey:issue.key, seriesName:series.name, issueName:issue.displayName, page:startPage, total:pages.length };
+    const readStatus={ ...this.state.readStatus, [issue.key]:{ ...(saved||{}), page:startPage, total:pages.length, read:saved?.read||false } };
+    const prevView=this.state.view;
+    this.state.pages.forEach(u=>{ try{ URL.revokeObjectURL(u); }catch(e){} });
+    this.setState({ view:'reader', prevView, currentSeries:series, currentIssue:issue, pages, currentPage:startPage, lastRead, readStatus });
+    this.saveStatus(readStatus, lastRead);
+  }
+
+  async openIssue(series, issue) {
+    if (issue.isDemo) { return this.openDemoIssue(series, issue); }
+    if (issue.isCBR) {
+      alert('CBR (RAR) files are not supported in browsers.\n\nTo convert to CBZ:\n1. Rename .cbr → .rar\n2. Extract with 7-Zip\n3. Re-zip the images\n4. Rename .zip → .cbz');
+      return;
+    }
+    const prevView = this.state.view;
+    this.setState({ loading: true, loadingMessage: 'Opening ' + issue.displayName + '…' });
+    try {
+      const file = await issue.handle.getFile();
+      const pages = await this.loadCBZ(file);
+      if (!pages.length) { this.setState({ loading: false }); alert('No images found in this file.'); return; }
+
+      if (!this.coverCache[issue.key]) this.coverCache[issue.key] = pages[0];
+
+      const saved = this.state.readStatus[issue.key];
+      const startPage = (saved && !saved.read && saved.page) ? saved.page : 0;
+      const lastRead = { issueKey: issue.key, seriesName: series.name, issueName: issue.displayName, page: startPage, total: pages.length };
+      const readStatus = { ...this.state.readStatus, [issue.key]: { ...(saved || {}), page: startPage, total: pages.length, read: saved?.read || false } };
+
+      const oldCov = this.coverCache[this.state.currentIssue?.key];
+      this.state.pages.forEach(u => { if (u !== oldCov) URL.revokeObjectURL(u); });
+
+      this.setState({ view: 'reader', prevView, currentSeries: series, currentIssue: issue, pages, currentPage: startPage, loading: false, lastRead, readStatus });
+      this.saveStatus(readStatus, lastRead);
+    } catch(e) {
+      this.setState({ loading: false });
+      alert('Error loading issue: ' + e.message);
+    }
+  }
+
+  async loadCBZ(file) {
+    const JSZip = window.JSZip;
+    if (!JSZip) throw new Error('JSZip not loaded. Check your connection.');
+    this.setState({ loadingMessage: 'Extracting pages…' });
+    const buf = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(buf);
+    const names = Object.keys(zip.files)
+      .filter(n => !zip.files[n].dir && /\.(jpe?g|png|webp|gif|avif)$/i.test(n))
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+    const pages = [];
+    for (let i = 0; i < names.length; i++) {
+      this.setState({ loadingMessage: `Loading page ${i + 1} of ${names.length}…` });
+      const blob = await zip.files[names[i]].async('blob');
+      pages.push(URL.createObjectURL(blob));
+    }
+    return pages;
+  }
+
+  goToPage(n) {
+    const { pages, currentIssue, doublePageMode, readStatus } = this.state;
+    const total = pages.length;
+    const step = doublePageMode ? 2 : 1;
+    const newPage = Math.max(0, Math.min(n, total - 1));
+    const isLast = newPage >= total - step;
+    const key = currentIssue.key;
+    const cur = readStatus[key] || {};
+    const newRS = { ...readStatus, [key]: { ...cur, page: newPage, total, read: cur.read || isLast } };
+    const newLR = { ...this.state.lastRead, page: newPage };
+    this.setState({ currentPage: newPage, readStatus: newRS, lastRead: newLR });
+    this.saveStatus(newRS, newLR);
+  }
+
+  nextPage() { this.goToPage(this.state.currentPage + (this.state.doublePageMode ? 2 : 1)); }
+  prevPage() { this.goToPage(this.state.currentPage - (this.state.doublePageMode ? 2 : 1)); }
+
+  markCurrentRead() {
+    const { currentIssue, readStatus, lastRead } = this.state;
+    if (!currentIssue) return;
+    const key = currentIssue.key;
+    const newRS = { ...readStatus, [key]: { ...readStatus[key], read: true } };
+    this.setState({ readStatus: newRS });
+    this.saveStatus(newRS, lastRead);
+  }
+
+  toggleRead(issue, e) {
+    if (e) e.stopPropagation();
+    const { readStatus, lastRead } = this.state;
+    const key = issue.key;
+    const cur = readStatus[key] || {};
+    const newRS = { ...readStatus, [key]: { ...cur, read: !cur.read } };
+    this.setState({ readStatus: newRS });
+    this.saveStatus(newRS, lastRead);
+  }
+
+  markAllSeriesRead() {
+    const { currentSeries, readStatus, lastRead } = this.state;
+    if (!currentSeries) return;
+    const newRS = { ...readStatus };
+    currentSeries.issues.forEach(i => { newRS[i.key] = { ...(newRS[i.key] || {}), read: true }; });
+    this.setState({ readStatus: newRS });
+    this.saveStatus(newRS, lastRead);
+  }
+
+  closeReader() {
+    const { pages, prevView, currentIssue } = this.state;
+    const covUrl = this.coverCache[currentIssue?.key];
+    pages.forEach(u => { if (u !== covUrl) URL.revokeObjectURL(u); });
+    this.setState({ view: prevView || 'inbox', pages: [], currentPage: 0 });
+  }
+
+  toggleFullscreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+
+  makeIssueCard(series, issue) {
+    const { readStatus } = this.state;
+    const st = readStatus[issue.key] || {};
+    const isRead = st.read;
+    const inProg = !isRead && st.page > 0;
+    const cover = this.coverCache[issue.key];
+    const num = this.issueNum(issue.displayName);
+    const pct = st.total ? Math.round(st.page / st.total * 100) : 0;
+
+    return {
+      key: issue.key,
+      issueName: issue.displayName,
+      seriesName: series.name,
+      issueNumText: num !== null ? `#${num}` : issue.displayName.substring(0, 4),
+      showProgressMeta: inProg,
+      progressText: `${pct}% read`,
+      showProgressBar: inProg,
+      rowStyle: { display: 'flex', alignItems: 'center', gap: '12px', padding: '11px 20px', background: '#FFF', borderBottom: '1px solid #EDEBE7', opacity: isRead ? 0.52 : 1 },
+      dotStyle: { width: '6px', height: '6px', borderRadius: '50%', background: isRead ? 'transparent' : '#E06B3A', flexShrink: 0, alignSelf: 'flex-start', marginTop: '5px' },
+      coverStyle: { width: '60px', height: '82px', flexShrink: 0, backgroundColor: series.color, backgroundImage: cover ? `url(${cover})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: '4px', overflow: 'hidden', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+      issueNumStyle: { fontSize: num !== null ? '20px' : '9px', fontWeight: '700', color: '#fff', textAlign: 'center', padding: '4px', lineHeight: '1.1', textShadow: '1px 1px 2px rgba(0,0,0,0.4)', fontFamily: 'inherit', wordBreak: 'break-all', display: cover ? 'none' : 'block' },
+      titleStyle: { fontSize: '14px', fontWeight: '500', color: isRead ? '#9A9790' : '#1A1917', lineHeight: '1.4', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', cursor: 'pointer' },
+      seriesNameStyle: { color: series.color, fontWeight: '500' },
+      progressFillStyle: { height: '100%', width: `${pct}%`, background: '#E06B3A', borderRadius: '2px' },
+      readLabel: isRead ? '↺ Unread' : '✓ Mark Read',
+      readBtnStyle: { fontSize: '11px', padding: '4px 9px', border: 'none', borderRadius: '4px', cursor: 'pointer', whiteSpace: 'nowrap', background: isRead ? '#F0EDE8' : '#1A1917', color: isRead ? '#6A6158' : '#FFF', fontWeight: '500', fontFamily: 'inherit' },
+      openBtnStyle: { fontSize: '11px', padding: '4px 10px', border: '1px solid #E0DDD8', borderRadius: '4px', background: '#FFF', color: '#3A3830', cursor: 'pointer', fontWeight: '500', fontFamily: 'inherit' },
+      onOpen: () => this.openIssue(series, issue),
+      onToggleRead: (e) => this.toggleRead(issue, e),
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const E = this.E || React.createElement;
+
+    const showWelcome = s.view === 'welcome';
+    const showInbox   = s.view === 'inbox';
+    const showLibrary = s.view === 'library';
+    const showSeries  = s.view === 'series';
+
+    const navBase = { display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '500' };
+    const navOn  = { background: 'rgba(255,255,255,0.09)', color: '#F0EDE8' };
+    const navOff = { background: 'transparent', color: '#948F89' };
+    const inboxNavStyle   = Object.assign({}, navBase, (showInbox || s.view === 'reader') ? navOn : navOff);
+    const libraryNavStyle = Object.assign({}, navBase, (showLibrary || showSeries) ? navOn : navOff);
+
+    const totalUnread = s.library.reduce((sum, ser) => sum + ser.issues.filter(i => !s.readStatus[i.key]?.read).length, 0);
+
+    const sidebarSeries = s.library.map(ser => {
+      const unread = ser.issues.filter(i => !s.readStatus[i.key]?.read).length;
+      const sel = s.selectedSeries === ser.name;
+      return {
+        key: ser.name, name: ser.name, unread, showBadge: unread > 0,
+        dotStyle: { width: '7px', height: '7px', borderRadius: '50%', background: ser.color, flexShrink: 0 },
+        itemStyle: { display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 8px 5px 14px', borderRadius: '6px', cursor: 'pointer', background: sel ? 'rgba(255,255,255,0.08)' : 'transparent', color: sel ? '#F0EDE8' : '#948F89' },
+        onSelect: () => this.setState({ selectedSeries: sel ? null : ser.name, view: 'inbox' }),
+      };
+    });
+
+    let inboxIssues = s.library.flatMap(ser => ser.issues.map(i => ({ ...i, series: ser })));
+    if (s.selectedSeries) inboxIssues = inboxIssues.filter(i => i.series.name === s.selectedSeries);
+    if (s.inboxFilter === 'unread') inboxIssues = inboxIssues.filter(i => !s.readStatus[i.key]?.read);
+    const inboxCards = inboxIssues.map(i => this.makeIssueCard(i.series, i));
+
+    const libraryCards = s.library.map(ser => {
+      const total = ser.issues.length;
+      const read = ser.issues.filter(i => s.readStatus[i.key]?.read).length;
+      const cover = this.coverCache[ser.issues[0]?.key];
+      const pct = total ? Math.round(read / total * 100) : 0;
+      return {
+        key: ser.name, name: ser.name, issueCount: `${total}`,
+        readLabel: `${read} of ${total} read`,
+        cardStyle: { border: '1px solid #E5E2DC', borderRadius: '8px', overflow: 'hidden', background: '#FFF', cursor: 'pointer' },
+        coverStyle: { height: '200px', backgroundColor: ser.color, backgroundImage: cover ? `url(${cover})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+        titleOverlayStyle: { fontSize: '18px', fontWeight: '700', color: '#fff', textAlign: 'center', padding: '16px', textShadow: '1px 1px 3px rgba(0,0,0,0.4)', lineHeight: '1.25', wordBreak: 'break-word', fontFamily: 'inherit', display: cover ? 'none' : 'block' },
+        issueBadgeStyle: { position: 'absolute', bottom: '8px', right: '8px', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', color: '#fff', fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: '4px' },
+        progressFillStyle: { height: '100%', width: `${pct}%`, background: '#E06B3A', borderRadius: '2px' },
+        onClick: () => this.setState({ view: 'series', currentSeries: ser }),
+      };
+    });
+
+    const seriesIssueCards = (s.currentSeries?.issues || []).map(issue => this.makeIssueCard(s.currentSeries, issue));
+    const serTotal = s.currentSeries?.issues.length || 0;
+    const serRead  = s.currentSeries?.issues.filter(i => s.readStatus[i.key]?.read).length || 0;
+
+    const pillBase = { padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' };
+    const filterUnreadStyle = Object.assign({}, pillBase, { background: s.inboxFilter === 'unread' ? '#1A1917' : 'transparent', color: s.inboxFilter === 'unread' ? '#F0EDE8' : '#7A7872' });
+    const filterAllStyle    = Object.assign({}, pillBase, { background: s.inboxFilter === 'all'    ? '#1A1917' : 'transparent', color: s.inboxFilter === 'all'    ? '#F0EDE8' : '#7A7872' });
+
+    // Reader overlay
+    const readerOverlay = s.view === 'reader' ? this.renderReader(E, s) : null;
+
+    // Loading overlay
+    const loadingOverlay = s.loading ? E('div', {
+      style: { position: 'fixed', inset: 0, background: 'rgba(26,25,23,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, fontFamily: "'Inter',system-ui,sans-serif" }
+    },
+      E('div', { style: { background: '#FFF', borderRadius: 12, padding: '28px 36px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.15)' } },
+        E('div', { style: { width: 30, height: 30, border: '3px solid #E0DDD8', borderTop: '3px solid #E06B3A', borderRadius: '50%', animation: 'spin 0.8s linear infinite' } }),
+        E('div', { style: { fontSize: 13, color: '#5A5850', fontWeight: 500 } }, s.loadingMessage)
+      )
+    ) : null;
+
+    return {
+      showWelcome, showInbox, showLibrary, showSeries,
+      inboxNavStyle, libraryNavStyle,
+      totalUnread, showUnreadBadge: totalUnread > 0,
+      sidebarSeries, showNoLibraryHint: s.library.length === 0,
+      folderBtnLabel: s.rootName ? 'Change Folder' : 'Open Folder',
+      welcomeHeading: s.rootName ? 'Reopen Your Library' : 'Open Your Comics Library',
+      welcomeSubtext: s.rootName ? `Previous library: ${s.rootName}` : 'Select a folder containing series subfolders with .cbz files',
+      welcomeBtnLabel: s.rootName ? `Open ${s.rootName} →` : 'Open Comics Folder →',
+      inboxCards, emptyInbox: inboxCards.length === 0,
+      inboxHeader: (s.selectedSeries && s.library.find(ser => ser.name === s.selectedSeries)) ? s.selectedSeries : 'Inbox',
+      hasSeriesFilter: !!s.selectedSeries,
+      filterUnreadStyle, filterAllStyle,
+      libraryCards, librarySubtitle: `${s.library.length} series`,
+      seriesIssueCards,
+      currentSeriesName: s.currentSeries?.name || '',
+      seriesReadLabel: `${serRead} of ${serTotal} read`,
+      readerOverlay, loadingOverlay,
+      loadDemo:          () => this.loadDemoData(),
+      openFolder:        () => this.openFolder(),
+      setInboxView:      () => this.setState({ view: 'inbox' }),
+      setLibraryView:    () => this.setState({ view: 'library' }),
+      clearSeriesFilter: () => this.setState({ selectedSeries: null }),
+      setFilterUnread:   () => this.setState({ inboxFilter: 'unread' }),
+      setFilterAll:      () => this.setState({ inboxFilter: 'all' }),
+      markAllSeriesRead: () => this.markAllSeriesRead(),
+    };
+  }
+
+  renderReader(E, s) {
+    const { pages, currentPage, doublePageMode, currentSeries, currentIssue, readStatus } = s;
+    const total = pages.length;
+    const p1 = pages[currentPage];
+    const p2 = doublePageMode ? pages[currentPage + 1] : null;
+    const isFirst = currentPage === 0;
+    const step = doublePageMode ? 2 : 1;
+    const isLast = currentPage >= total - step;
+    const pct = total > 1 ? (currentPage / (total - 1)) * 100 : 100;
+    const isRead = readStatus[currentIssue?.key]?.read;
+
+    return E('div', { style: { position: 'fixed', inset: 0, background: '#0d0c0a', zIndex: 500, display: 'flex', flexDirection: 'column', fontFamily: "'Inter',system-ui,sans-serif" } },
+      // Top bar
+      E('div', { style: { height: 44, background: '#17161A', borderBottom: '1px solid #2a2520', display: 'flex', alignItems: 'center', padding: '0 16px', gap: 12, flexShrink: 0 } },
+        E('button', { onClick: () => this.closeReader(), style: { background: 'transparent', color: '#948F89', border: '1px solid #2a2520', padding: '4px 12px', fontSize: 12, fontWeight: 500, cursor: 'pointer', borderRadius: 4, fontFamily: 'inherit', flexShrink: 0 } }, '← Back'),
+        E('div', { style: { fontSize: 13, color: '#4E4B47', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 } },
+          E('span', { style: { color: '#5A5880', fontWeight: 500 } }, (currentSeries?.name || '') + ' — '),
+          E('span', { style: { color: '#706D68' } }, currentIssue?.displayName || '')
+        ),
+        E('span', { style: { fontSize: 12, color: '#4E4B47', whiteSpace: 'nowrap', flexShrink: 0 } },
+          `${currentPage + 1}${doublePageMode && p2 ? '–' + (currentPage + 2) : ''} / ${total}`
+        ),
+        !isRead && E('button', { onClick: () => this.markCurrentRead(), style: { background: 'transparent', color: '#48B87A', border: '1px solid #1a3a28', padding: '4px 10px', fontSize: 11, cursor: 'pointer', borderRadius: 4, fontFamily: 'inherit', flexShrink: 0 } }, '✓ Mark Read'),
+        E('button', { onClick: () => this.setState(st => ({ doublePageMode: !st.doublePageMode })), style: { background: doublePageMode ? '#E06B3A' : 'transparent', color: doublePageMode ? '#fff' : '#948F89', border: `1px solid ${doublePageMode ? '#E06B3A' : '#2a2520'}`, padding: '4px 10px', fontSize: 11, cursor: 'pointer', borderRadius: 4, fontFamily: 'inherit', flexShrink: 0 } }, doublePageMode ? '2-page' : '1-page'),
+        E('button', { onClick: () => this.toggleFullscreen(), style: { background: 'transparent', color: '#4E4B47', border: '1px solid #2a2520', padding: '4px 8px', fontSize: 14, cursor: 'pointer', borderRadius: 4, flexShrink: 0 } }, '⛶')
+      ),
+      // Page area
+      E('div', { style: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' } },
+        E('div', { onClick: () => { if (!isFirst) this.prevPage(); }, style: { position: 'absolute', left: 0, top: 0, bottom: 0, width: '32%', zIndex: 10, cursor: isFirst ? 'default' : 'w-resize' } }),
+        E('div', { onClick: () => { if (!isLast) this.nextPage(); }, style: { position: 'absolute', right: 0, top: 0, bottom: 0, width: '32%', zIndex: 10, cursor: isLast ? 'default' : 'e-resize' } }),
+        p1 && E('div', { style: { display: 'flex', gap: 4, height: '100%', alignItems: 'center', justifyContent: 'center', padding: 8, pointerEvents: 'none' } },
+          E('img', { src: p1, style: { maxHeight: '100%', maxWidth: p2 ? '50%' : '100%', objectFit: 'contain', display: 'block', boxShadow: '0 0 60px rgba(0,0,0,0.8)' } }),
+          p2 && E('img', { src: p2, style: { maxHeight: '100%', maxWidth: '50%', objectFit: 'contain', display: 'block', boxShadow: '0 0 60px rgba(0,0,0,0.8)' } })
+        )
+      ),
+      // Progress bar
+      E('div', { style: { height: 3, background: '#2a2520', flexShrink: 0 } },
+        E('div', { style: { height: '100%', width: `${pct}%`, background: '#E06B3A', transition: 'width 0.15s' } })
+      )
+    );
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+:root {
+  /* Colors */
+  --sidebar-bg: #17161a;
+  --sidebar-text: #948f89;
+  --sidebar-active: #f0ede8;
+  --app-bg: #f4f3f0;
+  --surface: #ffffff;
+  --border: #e0ddd8;
+  --border-subtle: #edebe7;
+  --text-primary: #1a1917;
+  --text-secondary: #5a5850;
+  --text-muted: #8a8680;
+  --text-faint: #9a9790;
+  --accent-orange: #e06b3a;
+  --accent-green: #48b87a;
+  --reader-bg: #0d0c0a;
+  --reader-bar: #17161a;
+  --reader-border: #2a2520;
+
+  /* Typography */
+  --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Spacing (4px base unit) */
+  --space-1: 4px;
+  --space-2: 6px;
+  --space-3: 8px;
+  --space-4: 10px;
+  --space-5: 12px;
+  --space-6: 14px;
+  --space-7: 16px;
+  --space-8: 20px;
+  --space-9: 24px;
+  --space-10: 32px;
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 7px;
+  --radius-xl: 8px;
+  --radius-2xl: 10px;
+  --radius-pill: 99px;
+}

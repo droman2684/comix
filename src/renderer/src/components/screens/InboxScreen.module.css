@@ -1,0 +1,100 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header {
+  padding: 13px 20px 11px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--app-bg);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.headerActions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.markAllBtn {
+  font-size: 12px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: #3a3830;
+  cursor: pointer;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.markAllBtn:disabled {
+  cursor: default;
+  color: var(--text-faint);
+}
+
+.filterPills {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  background: var(--border);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.pill {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  gap: 8px;
+}
+
+.emptyIcon {
+  font-size: 30px;
+  color: #c8c5c0;
+}
+
+.emptyTitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.emptySubtitle {
+  font-size: 13px;
+  color: #a09d98;
+}
+
+.emptyAction {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-faint);
+  cursor: pointer;
+}
