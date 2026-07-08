@@ -75,4 +75,12 @@ describe('scanLibrary', () => {
     const library = scanLibrary(root)
     expect(library.map((s) => s.name)).toEqual(['Saga'])
   })
+
+  it('ignores AppleDouble sidecar files left by drive-to-drive copies', () => {
+    const root = makeLibrary({
+      Saga: ['Saga #001.cbz', '._Saga #001.cbz', 'Saga #002.cbr', '._Saga #002.cbr']
+    })
+    const library = scanLibrary(root)
+    expect(library[0].issues.map((i) => i.name)).toEqual(['Saga #001.cbz', 'Saga #002.cbr'])
+  })
 })

@@ -71,7 +71,10 @@ export function scanLibrary(rootPath: string): Series[] {
     }
 
     const issues: Issue[] = files
-      .filter((f) => COMIC_EXT.test(f))
+      // Drive-to-drive copies (especially to/from exFAT or network volumes)
+      // leave an AppleDouble sidecar file "._Name.cbz" next to every real
+      // "Name.cbz" — without this filter each real issue shows up twice.
+      .filter((f) => COMIC_EXT.test(f) && !f.startsWith('._'))
       .map((fname) => ({
         name: fname,
         displayName: fname.replace(COMIC_EXT, ''),
